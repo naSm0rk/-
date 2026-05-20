@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ну чё как там с деньгами?</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --card: #13131e;
+    --accent: #f5c842;
+    --accent2: #ff6b35;
+    --accent3: #4fffb0;
+    --text: #f0f0f0;
+    --muted: #888;
+    --danger: #ff3c3c;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 20%, rgba(245,200,66,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 50% at 80% 80%, rgba(255,107,53,0.07) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .noise {
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .container {
+    position: relative;
+    z-index: 2;
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* Header badge */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,60,60,0.15);
+    border: 1px solid rgba(255,60,60,0.3);
+    border-radius: 100px;
+    padding: 6px 16px;
+    font-size: 13px;
+    color: var(--danger);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+    animation: pulse-border 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-border {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,60,60,0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(255,60,60,0); }
+  }
+
+  .badge-dot {
+    width: 8px; height: 8px;
+    background: var(--danger);
+    border-radius: 50%;
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* Main title */
+  h1 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(36px, 9vw, 72px);
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+
+  h1 .line1 { color: var(--text); }
+  h1 .line2 { color: var(--accent); display: block; }
+  h1 .line3 { color: var(--text); display: block; }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 44px;
+    max-width: 480px;
+  }
+
+  /* Countdown / pressure block */
+  .pressure-block {
+    background: var(--card);
+    border: 1px solid rgba(255,107,53,0.2);
+    border-radius: 20px;
+    padding: 28px;
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .pressure-block::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    animation: timer-shrink 30s linear forwards;
+    transform-origin: left;
+  }
+
+  @keyframes timer-shrink {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+  }
+
+  .pressure-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent2);
+    font-weight: 800;
+    margin-bottom: 12px;
+  }
+
+  .pressure-text {
+    font-size: 15px;
+    color: var(--text);
+    line-height: 1.65;
+  }
+
+  .pressure-text strong { color: var(--accent); }
+
+  /* Emoji decorations */
+  .emojis-row {
+    display: flex;
+    gap: 12px;
+    margin: 16px 0;
+    flex-wrap: wrap;
+  }
+
+  .emoji-chip {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 8px 14px;
+    font-size: 20px;
+    transition: transform 0.2s;
+    cursor: default;
+  }
+
+  .emoji-chip:hover { transform: scale(1.2) rotate(-5deg); }
+
+  /* Date picker section */
+  .section-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--accent3);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .date-card {
+    background: var(--card);
+    border: 1px solid rgba(79,255,176,0.15);
+    border-radius: 20px;
+    padding: 28px;
+    margin-bottom: 28px;
+  }
+
+  .date-card-title {
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+
+  .date-card-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 24px;
+  }
+
+  /* Slider */
+  .slider-wrap {
+    margin-bottom: 20px;
+  }
+
+  .slider-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.1);
+    outline: none;
+    cursor: pointer;
+    margin-bottom: 12px;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 0 0 4px rgba(245,200,66,0.2);
+    transition: box-shadow 0.2s;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover {
+    box-shadow: 0 0 0 8px rgba(245,200,66,0.2);
+  }
+
+  .days-display {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .days-num {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 48px;
+    font-weight: 900;
+    color: var(--accent);
+    line-height: 1;
+    min-width: 80px;
+  }
+
+  .days-info {
+    flex: 1;
+  }
+
+  .days-info .days-label {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .days-info .date-result {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text);
+  }
+
+  /* Reaction message */
+  .reaction {
+    margin-top: 16px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    transition: all 0.3s;
+  }
+
+  .reaction.ok { background: rgba(79,255,176,0.1); color: var(--accent3); border: 1px solid rgba(79,255,176,0.2); }
+  .reaction.warn { background: rgba(245,200,66,0.1); color: var(--accent); border: 1px solid rgba(245,200,66,0.2); }
+  .reaction.bad { background: rgba(255,60,60,0.1); color: var(--danger); border: 1px solid rgba(255,60,60,0.2); }
+
+  /* Confirm button */
+  .confirm-btn {
+    width: 100%;
+    padding: 18px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    border-radius: 16px;
+    font-family: 'Unbounded', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #0a0a0f;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    letter-spacing: -0.01em;
+    margin-top: 8px;
+  }
+
+  .confirm-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(245,200,66,0.3);
+  }
+
+  .confirm-btn:active { transform: translateY(0); }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--card);
+    border: 1px solid rgba(79,255,176,0.3);
+    border-radius: 16px;
+    padding: 16px 24px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--accent3);
+    z-index: 100;
+    transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 24px;
+    font-weight: 900;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* Spinning reminder */
+  .spin-wrap {
+    text-align: center;
+    margin: 32px 0;
+    position: relative;
+  }
+
+  .spin-circle {
+    display: inline-block;
+    width: 160px;
+    height: 160px;
+    position: relative;
+  }
+
+  .spin-circle svg {
+    animation: spin 12s linear infinite;
+    position: absolute;
+    inset: 0;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .spin-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 48px;
+    opacity: 0.5;
+  }
+
+  /* Animations */
+  .fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp 0.6s ease forwards;
+  }
+
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .fade-in:nth-child(1) { animation-delay: 0.1s; }
+  .fade-in:nth-child(2) { animation-delay: 0.25s; }
+  .fade-in:nth-child(3) { animation-delay: 0.4s; }
+  .fade-in:nth-child(4) { animation-delay: 0.55s; }
+  .fade-in:nth-child(5) { animation-delay: 0.7s; }
+  .fade-in:nth-child(6) { animation-delay: 0.85s; }
+
+  /* Confirmed state */
+  .confirmed-msg {
+    display: none;
+    text-align: center;
+    padding: 24px;
+    background: rgba(79,255,176,0.07);
+    border: 1px solid rgba(79,255,176,0.2);
+    border-radius: 20px;
+    margin-top: 12px;
+  }
+
+  .confirmed-msg.show { display: block; }
+  .confirmed-msg .big-emoji { font-size: 48px; margin-bottom: 12px; }
+  .confirmed-msg p { font-size: 15px; color: var(--accent3); font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="noise"></div>
+
+<div class="container">
+
+  <div class="fade-in">
+    <div class="badge">
+      <span class="badge-dot"></span>
+      Срочное сообщение
+    </div>
+  </div>
+
+  <div class="fade-in">
+    <h1>
+      <span class="line1">Ну чё,</span>
+      <span class="line2">как там</span>
+      <span class="line3">с деньгами? 💸</span>
+    </h1>
+    <p class="subtitle">
+      Тебе пришла эта ссылка не случайно. Кто-то очень ждёт. Терпение — добродетель, но у неё есть предел.
+    </p>
+  </div>
+
+  <div class="fade-in">
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--danger)" id="days-passed">—</div>
+        <div class="stat-label">дней прошло</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--accent)">💰</div>
+        <div class="stat-label">долг висит</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--accent3)">∞</div>
+        <div class="stat-label">терпения</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fade-in">
+    <div class="pressure-block">
+      <div class="pressure-label">⚠️ Ситуация накаляется</div>
+      <div class="pressure-text">
+        Хороший человек помнит о долгах. <strong>Отличный</strong> — возвращает их в срок.<br><br>
+        Согласно закону кармы, неотданные долги возвращаются тремя способами: натурой, неловкостью при встрече или грустным взглядом. <strong>Первый вариант предпочтительнее.</strong>
+      </div>
+      <div class="emojis-row">
+        <span class="emoji-chip" title="Ожидание">⏳</span>
+        <span class="emoji-chip" title="Деньги">💸</span>
+        <span class="emoji-chip" title="Дружба">🤝</span>
+        <span class="emoji-chip" title="Намёк">👀</span>
+        <span class="emoji-chip" title="Пожалуйста">🙏</span>
+        <span class="emoji-chip" title="Огонь">🔥</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="fade-in">
+    <div class="spin-wrap">
+      <div class="spin-circle">
+        <svg viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <path id="circle-text" d="M 80,80 m -60,0 a 60,60 0 1,1 120,0 a 60,60 0 1,1 -120,0"/>
+          </defs>
+          <text font-family="Nunito, sans-serif" font-size="13.5" font-weight="800" fill="#f5c842" letter-spacing="2">
+            <textPath href="#circle-text">ВЕРНИ • ДЕНЬГИ • ВЕРНИ • ДЕНЬГИ •&nbsp;</textPath>
+          </text>
+        </svg>
+        <div class="spin-center">💰</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fade-in">
+    <div class="date-card">
+      <div class="section-title">📅 Официальная явка с повинной</div>
+      <div class="date-card-title">Когда вернёшь?</div>
+      <div class="date-card-sub">Сдвигай ползунок — выбери дату. Это договор перед вселенной.</div>
+
+      <div class="slider-wrap">
+        <div class="slider-row">
+          <span>Завтра</span>
+          <span>Через год (серьёзно?)</span>
+        </div>
+        <input type="range" id="days-slider" min="1" max="365" value="7">
+      </div>
+
+      <div class="days-display">
+        <div class="days-num" id="days-val">7</div>
+        <div class="days-info">
+          <div class="days-label">дней — это</div>
+          <div class="date-result" id="date-result">—</div>
+        </div>
+      </div>
+
+      <div class="reaction" id="reaction"></div>
+
+      <button class="confirm-btn" onclick="confirm()">
+        ✅ Клянусь вернуть в этот день
+      </button>
+
+      <div class="confirmed-msg" id="confirmed">
+        <div class="big-emoji">🫂</div>
+        <p>Принято! Дата зафиксирована вселенной.<br>Ждём. Очень ждём. 🕯️</p>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Сделано с любовью и лёгкой тревогой · все права защищены кармой
+  </footer>
+</div>
+
+<div class="toast" id="toast">📩 Договор подписан! Вселенная в курсе.</div>
+
+<script>
+  // Days passed (mock — could be set via URL param)
+  const params = new URLSearchParams(location.search);
+  const since = params.get('since') || 'DOHUYA';
+  document.getElementById('days-passed').textContent = since;
+
+  // Slider logic
+  const slider = document.getElementById('days-slider');
+  const daysVal = document.getElementById('days-val');
+  const dateResult = document.getElementById('date-result');
+  const reaction = document.getElementById('reaction');
+
+  const reactions = {
+    ok: ['1–7', '😊 О, как любезно! Почти приличный срок.', 'ok'],
+    warn: ['8–30', '🤨 Хм. Ну ладно, подождём ещё немного...', 'warn'],
+    bad: ['31+', '😤 Это шутка такая? Серьёзно?! 😤', 'bad']
+  };
+
+  function updateSlider() {
+    const days = parseInt(slider.value);
+    daysVal.textContent = days;
+
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+    const opts = { day: 'numeric', month: 'long', year: 'numeric' };
+    dateResult.textContent = date.toLocaleDateString('ru-RU', opts);
+
+    // Color slider fill
+    const pct = ((days - 1) / 364) * 100;
+    const r = Math.round(79 + (255-79) * pct/100);
+    const g = Math.round(255 - (255-60) * pct/100);
+    const b = Math.round(176 - 176 * pct/100);
+    slider.style.background = `linear-gradient(90deg, rgb(${r},${g},${b}) ${pct}%, rgba(255,255,255,0.1) ${pct}%)`;
+
+    // Reaction
+    if (days <= 7) {
+      reaction.textContent = '😊 О, как любезно! Почти приличный срок.';
+      reaction.className = 'reaction ok';
+    } else if (days <= 30) {
+      reaction.textContent = '🤨 Хм. Ну ладно, подождём ещё немного...';
+      reaction.className = 'reaction warn';
+    } else if (days <= 90) {
+      reaction.textContent = '😤 Это шутка такая? Серьёзно?! 😤';
+      reaction.className = 'reaction bad';
+    } else {
+      reaction.textContent = '💀 Ты ещё в порядке? Может, лучше завтра?';
+      reaction.className = 'reaction bad';
+    }
+  }
+
+  slider.addEventListener('input', updateSlider);
+  updateSlider();
+
+  function confirm() {
+    const days = parseInt(slider.value);
+    document.getElementById('confirmed').classList.add('show');
+    const toast = document.getElementById('toast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 4000);
+
+    // Hide button
+    document.querySelector('.confirm-btn').style.display = 'none';
+    document.querySelector('.confirm-btn').disabled = true;
+
+    // Confetti-like emoji burst
+    const emojis = ['💸','💰','🫂','✅','🙏'];
+    for (let i = 0; i < 12; i++) {
+      const el = document.createElement('div');
+      el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      el.style.cssText = `
+        position:fixed;
+        font-size:28px;
+        top:${Math.random()*80+10}%;
+        left:${Math.random()*90+5}%;
+        z-index:999;
+        animation:floatUp 1.5s ease forwards;
+        pointer-events:none;
+      `;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 1600);
+    }
+  }
+
+  // Inject float keyframes
+  const style = document.createElement('style');
+  style.textContent = `@keyframes floatUp {
+    0%{opacity:1;transform:translateY(0) scale(1);}
+    100%{opacity:0;transform:translateY(-120px) scale(1.4);}
+  }`;
+  document.head.appendChild(style);
+</script>
+</body>
+</html>

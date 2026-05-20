@@ -473,7 +473,7 @@
         <div class="stat-label">долг висит</div>
       </div>
       <div class="stat-card">
-        <div class="stat-num" style="color:var(--accent3)">∞</div>
+        <div class="stat-num" style="color:var(--accent3)">0</div>
         <div class="stat-label">терпения</div>
       </div>
     </div>
@@ -558,7 +558,7 @@
 <script>
   // Days passed (mock — could be set via URL param)
   const params = new URLSearchParams(location.search);
-  const since = params.get('since') || 'DOHUYA';
+  const since = params.get('since') || '232';
   document.getElementById('days-passed').textContent = since;
 
   // Slider logic
